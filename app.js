@@ -26,12 +26,14 @@ const paths = {
 const icon = name => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths[name] + '</svg>';
 const el = id => document.getElementById(id);
 const community = document.body.dataset.view === 'community';
-const state = { grade: '', subject: '', query: '', shared: [], loading: community, error: false };
+const officialOrigin = 'https://kkujunhi-materials-manager.zxc3285.chatgpt.site';
+const state = { grade: '', subject: '', query: '', shared: [], loading: true, error: false };
+let officialFiles = [];
 
-function readOfficialFiles(template, metadata) {
+function readOfficialFiles(entries, metadata) {
   const files = [];
-  for (const entry of template.content.querySelectorAll('[data-file]')) {
-    const fileName = entry.dataset.file;
+  for (const { id, filename: fileName } of entries) {
+    if (!/^(?:legacy-[0-9a-f]{16}|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/.test(id) || typeof fileName !== 'string') continue;
     const [gradeLabel, subjectLabel, ...titleParts] = fileName.replace(/\.pdf$/i, '').normalize('NFC').split('__');
     const grade = Object.keys(grades).find(key => grades[key] === gradeLabel);
     const subject = Object.keys(subjects).find(key => subjects[key].label === subjectLabel);
@@ -41,7 +43,7 @@ function readOfficialFiles(template, metadata) {
     const details = numbering
       ? { unit: Number(numbering[1]), part: Number(numbering[2]) }
       : metadata.find(item => item.grade === grade && item.subject === subject && item.title === title);
-    files.push({ ...details, grade, subject, title, pdf: 'materials/' + encodeURIComponent(fileName) });
+    files.push({ ...details, grade, subject, title, pdf: officialOrigin + '/pdf/' + id });
   }
   return files.sort((a, b) => Object.keys(grades).indexOf(a.grade) - Object.keys(grades).indexOf(b.grade)
     || Object.keys(subjects).indexOf(a.subject) - Object.keys(subjects).indexOf(b.subject)
@@ -49,8 +51,6 @@ function readOfficialFiles(template, metadata) {
     || (a.part ?? Infinity) - (b.part ?? Infinity)
     || a.title.localeCompare(b.title, 'ko'));
 }
-
-const officialFiles = community ? [] : readOfficialFiles(el('official-files'), worksheets);
 
 function element(tag, className, content) {
   const item = document.createElement(tag);
@@ -67,12 +67,12 @@ function action(label, iconName, style, href) {
   return item;
 }
 function download(item) {
-  const link = action('PDF 다운로드', 'download', 'button-green', item.pdf);
+  const link = action('PDF 다운로드', 'download', 'button-green', item.issue ? item.pdf : item.pdf + '?download=1');
   if (item.issue) {
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
   } else {
-    link.download = '꾸준히_' + subjects[item.subject].label + '_' + grades[item.grade].replace(' ', '') + '_' + item.title + '.pdf';
+    link.download = '';
   }
   return link;
 }
@@ -154,11 +154,12 @@ function render() {
     button.lastElementChild.textContent = grade ? base.filter(item => item.grade === grade).length : base.length;
   });
   document.querySelectorAll('[data-subject]').forEach(button => button.setAttribute('aria-pressed', button.dataset.subject === state.subject));
-  el('result-count').textContent = community && state.loading ? '공유 자료를 불러오는 중…' : '자료 ' + filtered.length + '개';
+  el('result-count').textContent = state.loading ? '자료를 불러오는 중…' : '자료 ' + filtered.length + '개';
   el('reset').hidden = !state.grade && !state.subject && !state.query;
   const note = el('network-note');
   if (note) note.hidden = !state.error;
-  if (state.error) {
+  if (state.error && !community) note.textContent = '자료를 불러오지 못했어요. 잠시 후 새로고침해 주세요.';
+  if (state.error && community) {
     const issues = element('a', '', 'GitHub에서 공개 자료 보기');
     issues.href = github + '/issues?q=is%3Aissue+label%3Apublished';
     note.replaceChildren('최근 공유 자료를 불러오지 못했어요. ', issues);
@@ -167,7 +168,7 @@ function render() {
     el('cards').replaceChildren(...filtered.map(card));
     return;
   }
-  if (community && (state.loading || state.error)) {
+  if (state.loading || state.error) {
     el('cards').replaceChildren();
     return;
   }
@@ -290,6 +291,20 @@ if (community) {
   form.addEventListener('input', event => event.target.setCustomValidity(''));
   loadShared();
 } else {
+  render();
+  loadOfficial();
+}
+
+async function loadOfficial() {
+  try {
+    const response = await fetch(officialOrigin + '/api/materials', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+    if (!response.ok) throw new Error('Unable to load official materials');
+    officialFiles = readOfficialFiles(await response.json(), worksheets);
+  } catch {
+    state.error = true;
+  } finally {
+    state.loading = false;
+  }
   const previews = officialFiles.filter(item => item.images);
   const heroBack = previews.find(item => item.id === 'korean-p2') || previews[0];
   const heroFront = previews.find(item => item.id === 'math-p1') || previews.find(item => item !== heroBack);

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f7ef">
+<meta name="description" content="특수교육 수업을 위한 국어·수학·일상생활 PDF 학습지와 선생님들의 수업자료를 찾고 나누는 곳입니다.">
+<title>꾸준히 학습지 | 특수교육 자료실</title>
+<link rel="stylesheet" href="style.css">
+<script src="catalog.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#library">자료 목록으로 건너뛰기</a>
+<header class="header">
+  <div class="wrap header-inner">
+    <a class="brand" href="#library" aria-label="꾸준히 학습지 자료실">
+      <span class="brand-icon" data-icon="book"></span><span>꾸준히 학습지<small>특수교육 수업자료실</small></span>
+    </a>
+    <nav aria-label="주 메뉴">
+      <a href="#library" data-view="library" aria-current="page">학습지 자료실</a>
+      <a href="#community" data-view="community">교사 공유 게시판</a>
+    </nav>
+    <button class="button share-top" data-share><span data-icon="plus"></span> 자료 올리기</button>
+  </div>
+</header>
+<main class="wrap">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="eyebrow"><span></span> 선생님을 위한 특수교육 자료실</p>
+      <h1 id="hero-title">꾸준히<br>학습지<span>.</span></h1>
+      <p class="hero-description">초등부터 고등까지, 교과와 학년군에 맞는 학습지를 찾고<br class="desktop"> 선생님의 수업자료도 함께 나눠요.</p>
+      <div class="hero-actions">
+        <a class="button button-cream" href="#library" data-scroll><span data-icon="book"></span> 학습지 찾아보기</a>
+        <a class="button button-ghost" href="#community">교사 자료 둘러보기 <span data-icon="arrow"></span></a>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <span class="art-orbit"></span><span class="art-spark">✦</span><span class="art-star">✧</span><span class="art-dot"></span>
+      <img class="paper paper-back" src="korean-p2-preview.jpg" alt="" width="1080" height="1350">
+      <img class="paper paper-front" src="math-p1-preview.jpg" alt="" width="1080" height="1350">
+      <span class="print-label"><span data-icon="file"></span> 인쇄용 PDF</span>
+    </div>
+  </section>
+  <section class="workspace" id="library" tabindex="-1" aria-labelledby="section-title">
+    <aside class="sidebar" aria-label="학년군 선택">
+      <h2><span data-icon="layers"></span> 학년군</h2>
+      <div id="grade-filter"></div>
+    </aside>
+    <div class="main-panel">
+      <div class="section-heading">
+        <div>
+          <h2 id="section-title">학습지 자료실</h2>
+          <p id="section-description">수업에 바로 쓸 수 있는 PDF 학습지를 찾아보세요.</p>
+        </div>
+        <button class="button community-share" data-share hidden><span data-icon="plus"></span> 자료 올리기</button>
+      </div>
+      <div class="toolbar">
+        <div id="subject-filter" role="group" aria-label="교과 선택"></div>
+        <label class="search"><span data-icon="search"></span><span class="sr-only">자료 검색</span><input id="search" type="search" placeholder="학습지 검색" autocomplete="off"></label>
+      </div>
+      <div class="results">
+        <p id="result-count" role="status" aria-live="polite"></p>
+        <button type="button" class="reset" id="reset" hidden>필터 초기화</button>
+      </div>
+      <p id="network-note" class="network-note" hidden></p>
+      <div id="cards" class="cards"></div>
+      <noscript>자료 목록을 보려면 브라우저에서 자바스크립트를 켜 주세요.</noscript>
+    </div>
+  </section>
+</main>
+<footer class="footer">
+  <div class="wrap footer-inner"><span><strong>꾸준히 학습지</strong> · 특수교육 수업자료실</span>
+    <div><a href="https://github.com/zxc3285123-web/kkujunhi-worksheets#readme">자료 출처·운영 안내</a><a href="https://github.com/zxc3285123-web/kkujunhi-worksheets">GitHub <span data-icon="external"></span></a></div>
+  </div>
+</footer>
+<dialog id="details" aria-labelledby="detail-title">
+  <div class="dialog-top"><h2 id="detail-title"></h2><form method="dialog"><button class="icon-button" aria-label="미리보기 닫기" data-icon="close"></button></form></div>
+  <p id="detail-meta"></p><div id="detail-images"></div><div id="detail-actions" class="dialog-actions"></div>
+</dialog>
+<dialog id="share-dialog" aria-labelledby="share-title">
+  <div class="dialog-top"><h2 id="share-title">수업자료 올리기</h2><form method="dialog"><button class="icon-button" aria-label="자료 올리기 창 닫기" data-icon="close"></button></form></div>
+  <p class="share-help">자료 정보를 작성한 뒤 GitHub에서 PDF를 첨부해 제출해 주세요. 제출에는 GitHub 계정이 필요합니다.</p>
+  <form id="share-form">
+    <label>자료 제목<input name="title" required maxlength="80" placeholder="예) 그림으로 배우는 하루 일과"></label>
+    <div class="field-row"><label>교과<select name="subject" required><option value="">선택</option></select></label><label>학년군<select name="grade" required><option value="">선택</option></select></label></div>
+    <label>자료 소개<textarea name="description" rows="3" required maxlength="500" placeholder="수업 주제와 활용 방법을 적어 주세요."></textarea></label>
+    <p class="form-note">제출한 글과 파일은 GitHub에서 공개됩니다. 학생 개인정보를 빼고, 공유 권한이 있는 PDF만 첨부해 주세요. 운영자가 확인한 자료가 이 사이트 게시판에 표시됩니다.</p>
+    <div class="dialog-actions"><button type="submit" class="button button-green">GitHub에서 PDF 첨부하기 <span data-icon="external"></span></button></div>
+  </form>
+</dialog>
+<script>
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+</script>
+</body>
+</html>

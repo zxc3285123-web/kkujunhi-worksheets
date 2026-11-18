@@ -10,5 +10,5 @@ const worksheets = [
   ['daily-p3', 'daily', 3, '선택한 일 하기', '할 일을 고르고 필요한 물건을 준비한 뒤 직접 해봐요.'],
 ].map(([id, subject, part, title, description]) => ({
   id, subject, part, title, description, grade: 'e12', unit: 1, pages: 4,
-  pdf: id + '.pdf', images: [id + '-preview.jpg', id + '-page2.jpg'],
+  images: [id + '-preview.jpg', id + '-page2.jpg'],
 }));

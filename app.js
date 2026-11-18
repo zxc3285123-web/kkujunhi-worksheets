@@ -25,7 +25,28 @@ const paths = {
 };
 const icon = name => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths[name] + '</svg>';
 const el = id => document.getElementById(id);
-const state = { view: 'library', grade: '', subject: '', query: '', shared: [], loading: true, error: false };
+const community = document.body.dataset.view === 'community';
+const state = { grade: '', subject: '', query: '', shared: [], loading: community, error: false };
+
+function readOfficialFiles(template, metadata) {
+  const files = [];
+  for (const entry of template.content.querySelectorAll('[data-file]')) {
+    const fileName = entry.dataset.file;
+    const [gradeLabel, subjectLabel, ...titleParts] = fileName.replace(/\.pdf$/i, '').normalize('NFC').split('__');
+    const grade = Object.keys(grades).find(key => grades[key] === gradeLabel);
+    const subject = Object.keys(subjects).find(key => subjects[key].label === subjectLabel);
+    const title = titleParts.join('__').trim();
+    if (!grade || !subject || !title) continue;
+    const details = metadata.find(item => item.grade === grade && item.subject === subject && item.title === title);
+    files.push({ ...details, grade, subject, title, pdf: 'materials/' + encodeURIComponent(fileName) });
+  }
+  return files.sort((a, b) => Object.keys(grades).indexOf(a.grade) - Object.keys(grades).indexOf(b.grade)
+    || Object.keys(subjects).indexOf(a.subject) - Object.keys(subjects).indexOf(b.subject)
+    || (a.part ?? Infinity) - (b.part ?? Infinity)
+    || a.title.localeCompare(b.title, 'ko'));
+}
+
+const officialFiles = community ? [] : readOfficialFiles(el('official-files'), worksheets);
 
 function element(tag, className, content) {
   const item = document.createElement(tag);
@@ -92,11 +113,12 @@ function card(item) {
   }
   meta.append(element('span', 'tag', subject.label), element('span', '', grades[item.grade]));
   if (item.pages) meta.append(element('span', '', '· PDF ' + item.pages + '쪽'));
-  body.append(meta, element('h3', '', item.title), element('p', '', item.description));
+  body.append(meta, element('h3', '', item.title));
+  if (item.description) body.append(element('p', '', item.description));
   if (item.issue) {
-    if (!item.official) body.append(element('p', '', '공유한 선생님 · ' + item.author));
+    body.append(element('p', '', '공유한 선생님 · ' + item.author));
     actions.append(action('게시글', 'external', 'secondary', item.issue));
-  } else {
+  } else if (item.images) {
     const preview = action('미리보기', 'file', 'secondary');
     preview.addEventListener('click', () => openDetails(item));
     actions.append(preview);
@@ -108,23 +130,13 @@ function card(item) {
 }
 
 function render() {
-  const community = state.view === 'community';
-  const shared = state.shared.filter(item => item.official === !community);
-  const base = community ? shared : [...worksheets, ...shared];
+  const base = community ? state.shared : officialFiles;
   const normalize = value => value.normalize('NFC').toLowerCase();
   const terms = normalize(state.query).trim().split(/\s+/).filter(Boolean);
   const filtered = base.filter(item => {
     const matches = (!state.grade || item.grade === state.grade) && (!state.subject || item.subject === state.subject);
     const searchable = normalize([item.title, item.description, grades[item.grade], subjects[item.subject].label, item.unit ? item.unit + '단원 파트' + item.part : '', item.author || ''].join(' '));
     return matches && terms.every(term => searchable.includes(term));
-  });
-  el('section-title').textContent = community ? '교사 공유 게시판' : '학습지 자료실';
-  el('section-description').textContent = community ? '선생님들이 수업에서 활용한 자료를 함께 나눠요.' : '수업에 바로 쓸 수 있는 PDF 학습지를 찾아보세요.';
-  el('search').placeholder = community ? '공유 자료 검색' : '학습지 검색';
-  document.querySelector('.community-share').hidden = !community;
-  document.querySelectorAll('nav [data-view]').forEach(link => {
-    if (link.dataset.view === state.view) link.setAttribute('aria-current', 'page');
-    else link.removeAttribute('aria-current');
   });
   document.querySelectorAll('[data-grade]').forEach(button => {
     const grade = button.dataset.grade;
@@ -135,7 +147,7 @@ function render() {
   el('result-count').textContent = community && state.loading ? '공유 자료를 불러오는 중…' : '자료 ' + filtered.length + '개';
   el('reset').hidden = !state.grade && !state.subject && !state.query;
   const note = el('network-note');
-  note.hidden = !state.error;
+  if (note) note.hidden = !state.error;
   if (state.error) {
     const issues = element('a', '', 'GitHub에서 공개 자료 보기');
     issues.href = github + '/issues?q=is%3Aissue+label%3Apublished';
@@ -153,7 +165,7 @@ function render() {
   const firstPost = community && !state.grade && !state.subject && !terms.length;
   empty.append(
     element('h3', '', firstPost ? '아직 공개된 교사 자료가 없어요.' : '조건에 맞는 자료가 없어요.'),
-    element('p', '', firstPost ? '상단의 자료 올리기에서 첫 자료를 공유해 보세요.' : '다른 학년군이나 교과를 선택하거나 검색어를 바꿔 보세요.'),
+    element('p', '', firstPost ? '공유 자료 올리기에서 첫 자료를 공유해 보세요.' : '다른 학년군이나 교과를 선택하거나 검색어를 바꿔 보세요.'),
   );
   el('cards').replaceChildren(empty);
 }
@@ -175,19 +187,6 @@ function resetFilters() {
   state.grade = state.subject = state.query = '';
   el('search').value = '';
 }
-function changeView(view, scroll) {
-  if (state.view !== view) resetFilters();
-  state.view = view;
-  render();
-  if (scroll) {
-    el('library').focus({ preventScroll: true });
-    el('library').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-  }
-}
-function viewFromHash() {
-  return location.hash === '#community' ? 'community' : 'library';
-}
-
 function parseIssue(issue) {
   if (issue.pull_request || typeof issue.body !== 'string') return null;
   const lines = issue.body.replace(/\r/g, '').split('\n');
@@ -201,7 +200,6 @@ function parseIssue(issue) {
   return {
     grade, subject, description, title: issue.title,
     pdf: attached[1], issue: github + '/issues/' + issue.number,
-    official: issue.labels.some(label => label.name === 'official'),
     author: issue.user?.login || 'GitHub 사용자',
   };
 }
@@ -242,54 +240,54 @@ for (const [key, value] of Object.entries(subjects)) el('subject-filter').append
 el('search').addEventListener('input', event => { state.query = event.target.value; render(); });
 el('reset').addEventListener('click', () => { resetFilters(); render(); el('search').focus(); });
 
-document.querySelectorAll('a[href="#library"],a[href="#community"]').forEach(link => {
-  link.addEventListener('click', event => {
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+if (community) {
+  const form = el('share-form');
+  for (const entry of Object.entries(subjects)) form.elements.subject.add(new Option(entry[1].label, entry[0]));
+  for (const [key, label] of Object.entries(grades)) form.elements.grade.add(new Option(label, key));
+  document.querySelectorAll('[data-share]').forEach(button => button.addEventListener('click', () => {
+    if (!form.elements.subject.value) form.elements.subject.value = state.subject;
+    if (!form.elements.grade.value) form.elements.grade.value = state.grade;
+    el('share-dialog').showModal();
+  }));
+  form.addEventListener('submit', event => {
     event.preventDefault();
-    const hash = link.getAttribute('href');
-    if (location.hash !== hash) history.pushState(null, '', hash);
-    changeView(viewFromHash(), true);
-  });
-});
-window.addEventListener('hashchange', () => changeView(viewFromHash(), true));
-
-const form = el('share-form');
-for (const entry of Object.entries(subjects)) form.elements.subject.add(new Option(entry[1].label, entry[0]));
-for (const [key, label] of Object.entries(grades)) form.elements.grade.add(new Option(label, key));
-document.querySelectorAll('[data-share]').forEach(button => button.addEventListener('click', () => {
-  if (!form.elements.subject.value) form.elements.subject.value = state.subject;
-  if (!form.elements.grade.value) form.elements.grade.value = state.grade;
-  el('share-dialog').showModal();
-}));
-form.addEventListener('submit', event => {
-  event.preventDefault();
-  const data = new FormData(form);
-  const description = data.get('description').trim().replace(/\r?\n/g, ' ');
-  const title = data.get('title').trim();
-  for (const [name, value] of [['title', title], ['description', description]]) {
-    if (!value) {
-      form.elements[name].setCustomValidity('내용을 입력해 주세요.');
-      form.elements[name].reportValidity();
-      return;
+    const data = new FormData(form);
+    const description = data.get('description').trim().replace(/\r?\n/g, ' ');
+    const title = data.get('title').trim();
+    for (const [name, value] of [['title', title], ['description', description]]) {
+      if (!value) {
+        form.elements[name].setCustomValidity('내용을 입력해 주세요.');
+        form.elements[name].reportValidity();
+        return;
+      }
     }
+    const url = new URL(github + '/issues/new');
+    const body = [
+      '<!-- kkujunhi-resource -->',
+      '교과: ' + subjects[data.get('subject')].label,
+      '학년군: ' + grades[data.get('grade')],
+      '',
+      '### 자료 소개',
+      description,
+      '',
+      '### PDF 첨부',
+      '<!-- 이 줄 아래에 PDF를 끌어다 놓거나 첨부 버튼으로 추가해 주세요. -->',
+      '',
+    ].join('\n');
+    url.search = new URLSearchParams({ title, body });
+    window.location.assign(url);
+  });
+  form.addEventListener('input', event => event.target.setCustomValidity(''));
+  loadShared();
+} else {
+  const previews = officialFiles.filter(item => item.images);
+  const heroBack = previews.find(item => item.id === 'korean-p2') || previews[0];
+  const heroFront = previews.find(item => item.id === 'math-p1') || previews.find(item => item !== heroBack);
+  for (const [id, item] of [['hero-back', heroBack], ['hero-front', heroFront]]) {
+    if (!item) continue;
+    const image = el(id);
+    image.src = item.images[0];
+    image.hidden = false;
   }
-  const url = new URL(github + '/issues/new');
-  const body = [
-    '<!-- kkujunhi-resource -->',
-    '교과: ' + subjects[data.get('subject')].label,
-    '학년군: ' + grades[data.get('grade')],
-    '',
-    '### 자료 소개',
-    description,
-    '',
-    '### PDF 첨부',
-    '<!-- 이 줄 아래에 PDF를 끌어다 놓거나 첨부 버튼으로 추가해 주세요. -->',
-    '',
-  ].join('\n');
-  url.search = new URLSearchParams({ title, body });
-  window.location.assign(url);
-});
-form.addEventListener('input', event => event.target.setCustomValidity(''));
-
-changeView(viewFromHash(), location.hash === '#community');
-loadShared();
+  render();
+}

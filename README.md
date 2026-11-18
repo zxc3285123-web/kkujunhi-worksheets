@@ -6,7 +6,7 @@
 
 ## 공식 학습지 등록과 삭제
 
-[공식 자료 관리 화면](https://zxc3285123-web.github.io/kkujunhi-worksheets/admin.html)에서 등록용 PDF를 준비한 뒤 GitHub 저장소 관리 권한으로 [materials 폴더](materials/)에 올리거나 내릴 수 있습니다. 파일 이름과 등록 방법은 [공식 학습지 관리 안내](materials/README.md)를 참고하세요. GitHub Pages의 Jekyll 빌드가 폴더에서 공식 자료 목록을 만듭니다.
+[공식 자료 관리 화면](https://zxc3285123-web.github.io/kkujunhi-worksheets/admin.html)에서 소유자 계정으로 연결하면 PDF를 직접 올리거나 내릴 수 있습니다. 파일 이름과 등록 방법은 [공식 학습지 관리 안내](materials/README.md)를 참고하세요. GitHub Pages의 Jekyll 빌드가 폴더에서 공식 자료 목록을 만듭니다.
 
 ## 교사 공유 게시판
 

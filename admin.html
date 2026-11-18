@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, follow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <title>공식 자료 관리 | 꾸준히 학습지</title>
 <link rel="stylesheet" href="style.css?v=3">
 <style>
@@ -17,21 +19,51 @@
 .admin input,.admin select{width:100%;min-width:0;min-height:43px;background:#fff;border:1px solid #c8d5c8;border-radius:8px;padding:8px;color:var(--ink)}
 .admin a:not(.button){text-decoration:underline;text-underline-offset:3px}
 .admin .button{white-space:normal;text-align:center}
-#upload-steps{margin-top:14px;background:#edf4e9;border-radius:10px;padding:14px;overflow-wrap:anywhere}
-#upload-steps p{margin-bottom:8px}
+.admin fieldset{border:0;margin:0;padding:0;min-width:0}
+.admin .form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.admin .secondary{background:#eaf0e8}
+.admin button:disabled{opacity:.55;cursor:default}
+#published-files{padding:0;list-style:none;margin:0}
+#published-files li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+#published-files a{display:block;overflow-wrap:anywhere;font-weight:750}
+#published-files small{color:var(--muted)}
+.admin .remove{background:#f9eded;color:#813333;flex-shrink:0}
 .admin .form-status{margin:8px 0 0;min-height:1.35em}
 @media(max-width:420px){.admin-row{gap:8px}}
 </style>
-<script src="admin.js" defer></script>
+<script src="admin.js?v=2" defer></script>
 </head>
 <body>
 <main class="wrap admin">
   <a href="./">학습지 자료실로 돌아가기</a>
   <h1>공식 자료 관리</h1>
-  <p>선생님의 GitHub 계정으로 PDF를 올리거나 내릴 수 있어요.</p>
+  <section class="admin-panel" aria-labelledby="connect-title">
+    <h2 id="connect-title">관리자 연결</h2>
+    <form id="connect-form">
+      <p>처음에는 GitHub에서 이 자료실에만 사용할 관리 토큰을 발급해 주세요.</p>
+      <label>GitHub 관리 토큰<input name="token" type="password" placeholder="github_pat_…" minlength="20" autocomplete="off" spellcheck="false" required></label>
+      <div class="form-actions">
+        <button class="button button-green" type="submit">관리자 연결</button>
+        <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">GitHub에서 토큰 만들기</a>
+      </div>
+      <details>
+        <summary>토큰 설정 방법</summary>
+        <ol>
+          <li>토큰 이름을 ‘꾸준히 학습지’로 정하고 만료일을 선택하세요.</li>
+          <li><strong>Repository access</strong>에서 <strong>Only select repositories</strong>를 선택하고 <strong>kkujunhi-worksheets</strong>만 선택하세요.</li>
+          <li><strong>Permissions</strong>에서 <strong>Contents</strong>에 <strong>Read and write</strong>를 지정하고 <strong>Generate token</strong>을 누르세요.</li>
+          <li>발급된 토큰을 위 입력칸에 붙여넣으세요. 토큰은 이 화면을 닫으면 다시 입력해야 합니다.</li>
+        </ol>
+      </details>
+    </form>
+    <button id="disconnect" class="button secondary" type="button" hidden>연결 해제</button>
+    <p class="form-status" id="connection-status" role="status"></p>
+  </section>
+  <div id="management" hidden>
   <section class="admin-panel" aria-labelledby="upload-title">
     <h2 id="upload-title">새 학습지 올리기</h2>
-    <form id="prepare-pdf">
+    <form id="publish-form">
+      <fieldset id="publish-fields">
       <div class="admin-row">
         <label>학년군<select name="grade" required>
           <option value="">선택하세요</option><option>초등 1~2학년</option><option>초등 3~4학년</option><option>초등 5~6학년</option><option>중등 1~3학년</option><option>고등 1~3학년</option>
@@ -46,21 +78,19 @@
         <label>파트 (선택)<input name="part" type="number" min="1" max="99" step="1"></label>
       </div>
       <label>PDF 파일<input name="pdf" type="file" accept=".pdf,application/pdf" required></label>
-      <button class="button button-green" type="submit">등록용 PDF 저장</button>
-      <p class="form-status" id="prepare-status" role="status"></p>
+      <button class="button button-green" type="submit">PDF 등록</button>
+      </fieldset>
     </form>
-    <div id="upload-steps" hidden>
-      <p><strong>저장할 파일</strong> <span id="prepared-name"></span></p>
-      <p>아래 버튼을 눌러 저장한 PDF를 선택하고 <strong>Commit changes</strong>를 누르세요. 배포가 끝나면 자료실에 표시됩니다.</p>
-      <a class="button button-green" href="https://github.com/zxc3285123-web/kkujunhi-worksheets/upload/main/materials" target="_blank" rel="noopener">GitHub에서 PDF 올리기</a>
-    </div>
-    <noscript><p>파일 이름 자동 지정에는 자바스크립트가 필요해요. 아래 GitHub 폴더의 안내에 따라 직접 올릴 수 있어요.</p></noscript>
+    <p class="form-status" id="publish-status" role="status"></p>
   </section>
   <section class="admin-panel" aria-labelledby="remove-title">
-    <h2 id="remove-title">기존 학습지 내리기</h2>
-    <p>GitHub 폴더에서 PDF를 열고 파일 메뉴의 <strong>Delete file</strong>을 선택한 뒤 <strong>Commit changes</strong>를 누르세요.</p>
-    <a href="https://github.com/zxc3285123-web/kkujunhi-worksheets/tree/main/materials" target="_blank" rel="noopener">GitHub에서 공식 PDF 목록 열기</a>
+    <h2 id="remove-title">게시된 학습지</h2>
+    <p>내릴 자료를 찾아 <strong>내리기</strong>를 누르세요. 공개 자료실에는 배포가 끝나면 반영됩니다.</p>
+    <ul id="published-files"></ul>
+    <p class="form-status" id="remove-status" role="status"></p>
   </section>
+  </div>
+  <noscript><p>사이트에서 자료를 관리하려면 자바스크립트를 켜 주세요.</p></noscript>
 </main>
 </body>
 </html>

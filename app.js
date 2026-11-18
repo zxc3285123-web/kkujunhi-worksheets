@@ -35,13 +35,17 @@ function readOfficialFiles(template, metadata) {
     const [gradeLabel, subjectLabel, ...titleParts] = fileName.replace(/\.pdf$/i, '').normalize('NFC').split('__');
     const grade = Object.keys(grades).find(key => grades[key] === gradeLabel);
     const subject = Object.keys(subjects).find(key => subjects[key].label === subjectLabel);
-    const title = titleParts.join('__').trim();
+    const numbering = titleParts.length === 2 ? /^u([1-9]\d?)-p([1-9]\d?)$/.exec(titleParts[1]) : null;
+    const title = (numbering ? titleParts[0] : titleParts.join('__')).trim();
     if (!grade || !subject || !title) continue;
-    const details = metadata.find(item => item.grade === grade && item.subject === subject && item.title === title);
+    const details = numbering
+      ? { unit: Number(numbering[1]), part: Number(numbering[2]) }
+      : metadata.find(item => item.grade === grade && item.subject === subject && item.title === title);
     files.push({ ...details, grade, subject, title, pdf: 'materials/' + encodeURIComponent(fileName) });
   }
   return files.sort((a, b) => Object.keys(grades).indexOf(a.grade) - Object.keys(grades).indexOf(b.grade)
     || Object.keys(subjects).indexOf(a.subject) - Object.keys(subjects).indexOf(b.subject)
+    || (a.unit ?? Infinity) - (b.unit ?? Infinity)
     || (a.part ?? Infinity) - (b.part ?? Infinity)
     || a.title.localeCompare(b.title, 'ko'));
 }
@@ -112,6 +116,7 @@ function card(item) {
     card.append(preview);
   }
   meta.append(element('span', 'tag', subject.label), element('span', '', grades[item.grade]));
+  if (item.unit && !item.images) meta.append(element('span', '', '· ' + item.unit + '단원 · 파트 ' + item.part));
   if (item.pages) meta.append(element('span', '', '· PDF ' + item.pages + '쪽'));
   body.append(meta, element('h3', '', item.title));
   if (item.description) body.append(element('p', '', item.description));
@@ -121,6 +126,11 @@ function card(item) {
   } else if (item.images) {
     const preview = action('미리보기', 'file', 'secondary');
     preview.addEventListener('click', () => openDetails(item));
+    actions.append(preview);
+  } else {
+    const preview = action('PDF 열기', 'file', 'secondary', item.pdf);
+    preview.target = '_blank';
+    preview.rel = 'noopener noreferrer';
     actions.append(preview);
   }
   actions.append(download(item));

@@ -2,11 +2,11 @@
 
 [공식 학습지 자료실](https://zxc3285123-web.github.io/kkujunhi-worksheets/) · [교사 공유 게시판](https://zxc3285123-web.github.io/kkujunhi-worksheets/community.html)
 
-특수교육 수업용 국어·수학·일상생활 PDF를 학년군별로 내려받을 수 있습니다. 처음 등록한 학습지는 초등 1~2학년 1단원 9개입니다. 단원과 파트 번호는 꾸준히 학습지의 편집 순서입니다.
+특수교육 수업용 국어·수학·일상생활 PDF를 학년군별로 내려받을 수 있습니다. 단원과 파트 번호는 꾸준히 학습지의 편집 순서입니다.
 
 ## 공식 학습지 등록과 삭제
 
-GitHub 저장소 관리 권한으로 [materials 폴더](materials/)에 PDF를 올리거나 내릴 수 있습니다. 파일 이름과 등록 방법은 [공식 학습지 관리 안내](materials/README.md)를 참고하세요. GitHub Pages의 Jekyll 빌드가 폴더에서 공식 자료 목록을 만듭니다.
+[공식 자료 관리 화면](https://zxc3285123-web.github.io/kkujunhi-worksheets/admin.html)에서 등록용 PDF를 준비한 뒤 GitHub 저장소 관리 권한으로 [materials 폴더](materials/)에 올리거나 내릴 수 있습니다. 파일 이름과 등록 방법은 [공식 학습지 관리 안내](materials/README.md)를 참고하세요. GitHub Pages의 Jekyll 빌드가 폴더에서 공식 자료 목록을 만듭니다.
 
 ## 교사 공유 게시판
 

@@ -4,9 +4,13 @@
 
 ## 올리기
 
+[공식 자료 관리 화면](https://zxc3285123-web.github.io/kkujunhi-worksheets/admin.html)에서 분류와 PDF를 선택하면 등록용 파일 이름이 자동으로 만들어집니다. 아래 방법으로 직접 파일 이름을 지정할 수도 있습니다.
+
 1. PDF 이름을 `학년군__교과__제목.pdf` 형식으로 바꿉니다. 구분 기호는 밑줄 두 개입니다.
 2. 이 폴더에서 **Add file → Upload files**를 눌러 PDF를 선택한 뒤 **Commit changes**를 누릅니다.
 3. GitHub Pages 배포가 끝나면 [공식 학습지 자료실](https://zxc3285123-web.github.io/kkujunhi-worksheets/)에 올라갑니다.
+
+단원과 파트를 표시하려면 제목 뒤에 `__u1-p1`처럼 단원과 파트 번호를 덧붙이세요.
 
 파일 이름 예시: `초등 1~2학년__수학__10 이하 물건 세기.pdf`
 

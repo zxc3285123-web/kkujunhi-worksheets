@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, follow">
+<title>공식 자료 관리 | 꾸준히 학습지</title>
+<link rel="stylesheet" href="style.css?v=3">
+<style>
+.admin{max-width:720px;margin-block:32px 56px}
+.admin h1{margin:8px 0 4px;font-size:clamp(28px,5vw,39px);letter-spacing:-.045em}
+.admin h2{margin:0 0 8px;font-size:21px}
+.admin p{margin:0 0 12px;color:var(--muted)}
+.admin-panel{border:1px solid var(--line);background:var(--white);border-radius:var(--radius);padding:clamp(15px,4vw,27px);margin-top:16px}
+.admin-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.admin label{display:grid;gap:4px;margin-bottom:12px;font-size:14px;font-weight:750}
+.admin input,.admin select{width:100%;min-width:0;min-height:43px;background:#fff;border:1px solid #c8d5c8;border-radius:8px;padding:8px;color:var(--ink)}
+.admin a:not(.button){text-decoration:underline;text-underline-offset:3px}
+.admin .button{white-space:normal;text-align:center}
+#upload-steps{margin-top:14px;background:#edf4e9;border-radius:10px;padding:14px;overflow-wrap:anywhere}
+#upload-steps p{margin-bottom:8px}
+.admin .form-status{margin:8px 0 0;min-height:1.35em}
+@media(max-width:420px){.admin-row{gap:8px}}
+</style>
+<script src="admin.js" defer></script>
+</head>
+<body>
+<main class="wrap admin">
+  <a href="./">학습지 자료실로 돌아가기</a>
+  <h1>공식 자료 관리</h1>
+  <p>선생님의 GitHub 계정으로 PDF를 올리거나 내릴 수 있어요.</p>
+  <section class="admin-panel" aria-labelledby="upload-title">
+    <h2 id="upload-title">새 학습지 올리기</h2>
+    <form id="prepare-pdf">
+      <div class="admin-row">
+        <label>학년군<select name="grade" required>
+          <option value="">선택하세요</option><option>초등 1~2학년</option><option>초등 3~4학년</option><option>초등 5~6학년</option><option>중등 1~3학년</option><option>고등 1~3학년</option>
+        </select></label>
+        <label>교과<select name="subject" required>
+          <option value="">선택하세요</option><option>국어</option><option>수학</option><option>일상생활</option>
+        </select></label>
+      </div>
+      <label>학습지 제목<input name="title" required maxlength="70" placeholder="예: 생활 소리"></label>
+      <div class="admin-row">
+        <label>단원 (선택)<input name="unit" type="number" min="1" max="99" step="1"></label>
+        <label>파트 (선택)<input name="part" type="number" min="1" max="99" step="1"></label>
+      </div>
+      <label>PDF 파일<input name="pdf" type="file" accept=".pdf,application/pdf" required></label>
+      <button class="button button-green" type="submit">등록용 PDF 저장</button>
+      <p class="form-status" id="prepare-status" role="status"></p>
+    </form>
+    <div id="upload-steps" hidden>
+      <p><strong>저장할 파일</strong> <span id="prepared-name"></span></p>
+      <p>아래 버튼을 눌러 저장한 PDF를 선택하고 <strong>Commit changes</strong>를 누르세요. 배포가 끝나면 자료실에 표시됩니다.</p>
+      <a class="button button-green" href="https://github.com/zxc3285123-web/kkujunhi-worksheets/upload/main/materials" target="_blank" rel="noopener">GitHub에서 PDF 올리기</a>
+    </div>
+    <noscript><p>파일 이름 자동 지정에는 자바스크립트가 필요해요. 아래 GitHub 폴더의 안내에 따라 직접 올릴 수 있어요.</p></noscript>
+  </section>
+  <section class="admin-panel" aria-labelledby="remove-title">
+    <h2 id="remove-title">기존 학습지 내리기</h2>
+    <p>GitHub 폴더에서 PDF를 열고 파일 메뉴의 <strong>Delete file</strong>을 선택한 뒤 <strong>Commit changes</strong>를 누르세요.</p>
+    <a href="https://github.com/zxc3285123-web/kkujunhi-worksheets/tree/main/materials" target="_blank" rel="noopener">GitHub에서 공식 PDF 목록 열기</a>
+  </section>
+</main>
+</body>
+</html>

@@ -32,7 +32,7 @@ let officialFiles = [];
 
 function readOfficialFiles(entries, metadata) {
   const files = [];
-  for (const { id, filename: fileName } of entries) {
+  for (const { id, filename: fileName, description } of entries) {
     if (!/^(?:legacy-[0-9a-f]{16}|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/.test(id) || typeof fileName !== 'string') continue;
     const [gradeLabel, subjectLabel, ...titleParts] = fileName.replace(/\.pdf$/i, '').normalize('NFC').split('__');
     const grade = Object.keys(grades).find(key => grades[key] === gradeLabel);
@@ -43,7 +43,7 @@ function readOfficialFiles(entries, metadata) {
     const details = numbering
       ? { unit: Number(numbering[1]), part: Number(numbering[2]) }
       : metadata.find(item => item.grade === grade && item.subject === subject && item.title === title);
-    files.push({ ...details, grade, subject, title, pdf: officialOrigin + '/pdf/' + id });
+    files.push({ ...details, description: typeof description === 'string' && description ? description : details?.description, grade, subject, title, pdf: officialOrigin + '/pdf/' + id });
   }
   return files.sort((a, b) => Object.keys(grades).indexOf(a.grade) - Object.keys(grades).indexOf(b.grade)
     || Object.keys(subjects).indexOf(a.subject) - Object.keys(subjects).indexOf(b.subject)

@@ -6,7 +6,7 @@
 
 ## 공식 학습지 등록과 삭제
 
-[공식 자료 관리](https://kkujunhi-materials-manager.zxc3285.chatgpt.site/)에서 자료실 소유자의 ChatGPT 계정으로 로그인합니다. 학년군과 교과를 선택하고 새 PDF를 게시하거나 목록에서 자료를 삭제할 수 있습니다.
+[공식 자료 관리](https://kkujunhi-materials-manager.zxc3285.chatgpt.site/)에서 소유자가 처음 한 번 ChatGPT로 본인 확인을 한 뒤 관리자 비밀번호를 직접 설정합니다. 이후에는 같은 자료실 화면에서 비밀번호로 로그인하고 글을 쓰거나 자료를 삭제할 수 있습니다.
 
 ## 교사 공유 게시판
 

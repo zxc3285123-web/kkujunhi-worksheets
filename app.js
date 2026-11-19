@@ -32,7 +32,7 @@ let officialFiles = [];
 
 function readOfficialFiles(entries, metadata) {
   const files = [];
-  for (const { id, filename: fileName, description, pages } of entries) {
+  for (const { id, filename: fileName, description, pages, previewPages, catalogId, edited } of entries) {
     if (!/^(?:legacy-[0-9a-f]{16}|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/.test(id) || typeof fileName !== 'string') continue;
     const [gradeLabel, subjectLabel, ...titleParts] = fileName.replace(/\.pdf$/i, '').normalize('NFC').split('__');
     const grade = Object.keys(grades).find(key => grades[key] === gradeLabel);
@@ -40,10 +40,17 @@ function readOfficialFiles(entries, metadata) {
     const numbering = titleParts.length === 2 ? /^u([1-9]\d?)-p([1-9]\d?)$/.exec(titleParts[1]) : null;
     const title = (numbering ? titleParts[0] : titleParts.join('__')).trim();
     if (!grade || !subject || !title) continue;
-    const details = numbering
-      ? { unit: Number(numbering[1]), part: Number(numbering[2]) }
-      : metadata.find(item => item.grade === grade && item.subject === subject && item.title === title);
-    files.push({ ...details, description: typeof description === 'string' && description ? description : details?.description, pages: Number.isSafeInteger(pages) && pages > 0 ? pages : details?.pages, id, grade, subject, title, pdf: officialOrigin + '/pdf/' + id });
+    const catalog = metadata.find(item => item.id === catalogId);
+    const numbered = numbering ? { unit: Number(numbering[1]), part: Number(numbering[2]) } : edited ? { unit: undefined, part: undefined } : {};
+    const selected = Array.isArray(previewPages) && previewPages.length <= 2
+      ? previewPages.filter(page => Number.isSafeInteger(page) && page > 0) : [];
+    const legacyDetails = catalog || (catalogId === undefined && !numbering && metadata.find(item => item.grade === grade && item.subject === subject && item.title === title));
+    files.push({ ...legacyDetails, ...numbered,
+      images: selected.length ? undefined : legacyDetails?.images, previewPages: selected,
+      description: typeof description === 'string' ? description : legacyDetails?.description,
+      pages: Number.isSafeInteger(pages) && pages > 0 ? pages : legacyDetails?.pages,
+      id, grade, subject, title, pdf: officialOrigin + '/pdf/' + id });
+
   }
   return files.sort((a, b) => Object.keys(grades).indexOf(a.grade) - Object.keys(grades).indexOf(b.grade)
     || Object.keys(subjects).indexOf(a.subject) - Object.keys(subjects).indexOf(b.subject)
@@ -78,9 +85,9 @@ function download(item) {
 }
 
 let pdfRenderer;
-function renderPdf(url, width, count) {
-  pdfRenderer ||= import(officialOrigin + '/pdf-engine/preview-v1.mjs');
-  return pdfRenderer.then(module => module.renderPages(url, width, count));
+function renderPdf(url, width, pages) {
+  pdfRenderer ||= import(officialOrigin + '/pdf-engine/preview-v2.mjs');
+  return pdfRenderer.then(module => module.renderPages(url, width, pages));
 }
 
 const previewQueue = [];
@@ -91,18 +98,19 @@ async function processPreviews() {
   if (previewRunning) return;
   previewRunning = true;
   while (previewQueue.length) {
-    const { button, pdf } = previewQueue.shift();
+    const { button, pdf, page } = previewQueue.shift();
+    const key = pdf + '#page=' + page;
     if (!button.isConnected) continue;
     try {
-      if (!previewCache.has(pdf)) {
+      if (!previewCache.has(key)) {
         if (previewCache.size >= 24) previewCache.delete(previewCache.keys().next().value);
-        const task = renderPdf(pdf, 360, 1).catch(error => {
-          previewCache.delete(pdf);
+        const task = renderPdf(pdf, 360, [page]).catch(error => {
+          previewCache.delete(key);
           throw error;
         });
-        previewCache.set(pdf, task);
+        previewCache.set(key, task);
       }
-      const [canvas] = await previewCache.get(pdf);
+      const [{ canvas } = {}] = await previewCache.get(key);
       if (canvas && button.isConnected) button.append(canvas);
     } catch {
       // The PDF remains available when paper previews cannot render.
@@ -115,7 +123,7 @@ const visiblePreviews = new IntersectionObserver(entries => {
   for (const entry of entries) {
     if (!entry.isIntersecting) continue;
     visiblePreviews.unobserve(entry.target);
-    previewQueue.push({ button: entry.target, pdf: entry.target.dataset.pdf });
+    previewQueue.push({ button: entry.target, pdf: entry.target.dataset.pdf, page: Number(entry.target.dataset.page) });
   }
   processPreviews();
 }, { rootMargin: '120px' });
@@ -136,13 +144,14 @@ async function openPdfDetails(item) {
   el('detail-actions').replaceChildren(link, download(item));
   el('details').showModal();
   try {
-    const canvases = await renderPdf(item.pdf, 720, 2);
+    const selected = item.previewPages?.length ? item.previewPages : [1, 2];
+    const rendered = await renderPdf(item.pdf, 720, selected);
     if (request !== detailRequest || !el('details').open) return;
-    const pages = canvases.map((canvas, i) => {
+    const pages = rendered.map(({ canvas, page }) => {
       const figure = element('figure');
       canvas.setAttribute('role', 'img');
-      canvas.setAttribute('aria-label', item.title + ' ' + (i + 1) + '쪽 미리보기');
-      figure.append(canvas, element('figcaption', '', (i + 1) + '쪽'));
+      canvas.setAttribute('aria-label', item.title + ' ' + page + '쪽 미리보기');
+      figure.append(canvas, element('figcaption', '', page + '쪽'));
       return figure;
     });
     if (!pages.length) throw new Error('Empty PDF');
@@ -196,6 +205,7 @@ function card(item) {
     const preview = element('button', 'card-preview generated-preview');
     preview.type = 'button';
     preview.dataset.pdf = item.pdf;
+    preview.dataset.page = item.previewPages?.[0] || 1;
     preview.setAttribute('aria-label', item.title + ' 미리보기');
     const badge = item.unit ? item.unit + '단원 · 파트 ' + item.part : 'PDF';
     preview.append(element('span', '', badge));

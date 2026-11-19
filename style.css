@@ -11,3 +11,8 @@
 .policy{max-width:760px;min-height:60vh;padding-top:30px}
 .policy a{text-decoration:underline}
 @media(max-width:680px){.board-intro{margin-top:15px;padding:20px}.board-intro p{font-size:14px}}
+
+.generated-preview canvas{display:block;width:min(70%,193px);height:auto;border-radius:5px;box-shadow:0 4px 14px #132f292f;pointer-events:none}
+#detail-images canvas{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:9px}
+.pdf-preview-status{grid-column:1/-1;color:var(--muted);min-height:35px}
+@media(max-width:680px){.generated-preview canvas{width:81%}}

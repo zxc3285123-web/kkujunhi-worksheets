@@ -32,7 +32,7 @@ let officialFiles = [];
 
 function readOfficialFiles(entries, metadata) {
   const files = [];
-  for (const { id, filename: fileName, description } of entries) {
+  for (const { id, filename: fileName, description, pages } of entries) {
     if (!/^(?:legacy-[0-9a-f]{16}|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/.test(id) || typeof fileName !== 'string') continue;
     const [gradeLabel, subjectLabel, ...titleParts] = fileName.replace(/\.pdf$/i, '').normalize('NFC').split('__');
     const grade = Object.keys(grades).find(key => grades[key] === gradeLabel);
@@ -43,7 +43,7 @@ function readOfficialFiles(entries, metadata) {
     const details = numbering
       ? { unit: Number(numbering[1]), part: Number(numbering[2]) }
       : metadata.find(item => item.grade === grade && item.subject === subject && item.title === title);
-    files.push({ ...details, description: typeof description === 'string' && description ? description : details?.description, grade, subject, title, pdf: officialOrigin + '/pdf/' + id });
+    files.push({ ...details, description: typeof description === 'string' && description ? description : details?.description, pages: Number.isSafeInteger(pages) && pages > 0 ? pages : details?.pages, id, grade, subject, title, pdf: officialOrigin + '/pdf/' + id });
   }
   return files.sort((a, b) => Object.keys(grades).indexOf(a.grade) - Object.keys(grades).indexOf(b.grade)
     || Object.keys(subjects).indexOf(a.subject) - Object.keys(subjects).indexOf(b.subject)
@@ -77,7 +77,85 @@ function download(item) {
   return link;
 }
 
+let pdfRenderer;
+function renderPdf(url, width, count) {
+  pdfRenderer ||= import(officialOrigin + '/pdf-engine/preview-v1.mjs');
+  return pdfRenderer.then(module => module.renderPages(url, width, count));
+}
+
+const previewQueue = [];
+const previewCache = new Map();
+let previewRunning = false;
+
+async function processPreviews() {
+  if (previewRunning) return;
+  previewRunning = true;
+  while (previewQueue.length) {
+    const { button, pdf } = previewQueue.shift();
+    if (!button.isConnected) continue;
+    try {
+      if (!previewCache.has(pdf)) {
+        if (previewCache.size >= 24) previewCache.delete(previewCache.keys().next().value);
+        const task = renderPdf(pdf, 360, 1).catch(error => {
+          previewCache.delete(pdf);
+          throw error;
+        });
+        previewCache.set(pdf, task);
+      }
+      const [canvas] = await previewCache.get(pdf);
+      if (canvas && button.isConnected) button.append(canvas);
+    } catch {
+      // The PDF remains available when paper previews cannot render.
+    }
+  }
+  previewRunning = false;
+}
+
+const visiblePreviews = new IntersectionObserver(entries => {
+  for (const entry of entries) {
+    if (!entry.isIntersecting) continue;
+    visiblePreviews.unobserve(entry.target);
+    previewQueue.push({ button: entry.target, pdf: entry.target.dataset.pdf });
+  }
+  processPreviews();
+}, { rootMargin: '120px' });
+
+let detailRequest = 0;
+async function openPdfDetails(item) {
+  const request = ++detailRequest;
+  el('detail-title').textContent = item.title;
+  el('detail-meta').textContent = [subjects[item.subject].label, grades[item.grade],
+    item.unit ? item.unit + '단원 · 파트 ' + item.part : ''].filter(Boolean).join(' · ');
+  const images = el('detail-images');
+  const status = element('p', 'pdf-preview-status', '미리보기를 불러오는 중…');
+  status.setAttribute('role', 'status');
+  images.replaceChildren(status);
+  const link = action('PDF 열기', 'external', 'secondary', item.pdf);
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  el('detail-actions').replaceChildren(link, download(item));
+  el('details').showModal();
+  try {
+    const canvases = await renderPdf(item.pdf, 720, 2);
+    if (request !== detailRequest || !el('details').open) return;
+    const pages = canvases.map((canvas, i) => {
+      const figure = element('figure');
+      canvas.setAttribute('role', 'img');
+      canvas.setAttribute('aria-label', item.title + ' ' + (i + 1) + '쪽 미리보기');
+      figure.append(canvas, element('figcaption', '', (i + 1) + '쪽'));
+      return figure;
+    });
+    if (!pages.length) throw new Error('Empty PDF');
+    images.replaceChildren(...pages);
+  } catch {
+    if (request === detailRequest && el('details').open) {
+      status.textContent = '이미지 미리보기를 불러오지 못했어요. 아래 PDF 열기를 이용해 주세요.';
+    }
+  }
+}
+
 function openDetails(item) {
+  detailRequest++;
   el('detail-title').textContent = item.title;
   el('detail-meta').textContent = [subjects[item.subject].label, grades[item.grade], item.unit + '단원 · 파트 ' + item.part, 'PDF ' + item.pages + '쪽'].join(' · ');
   el('detail-images').replaceChildren(...item.images.map((src, index) => {
@@ -114,6 +192,16 @@ function card(item) {
     preview.append(image, element('span', '', item.unit + '단원 · 파트 ' + item.part));
     preview.addEventListener('click', () => openDetails(item));
     card.append(preview);
+  } else if (!item.issue) {
+    const preview = element('button', 'card-preview generated-preview');
+    preview.type = 'button';
+    preview.dataset.pdf = item.pdf;
+    preview.setAttribute('aria-label', item.title + ' 미리보기');
+    const badge = item.unit ? item.unit + '단원 · 파트 ' + item.part : 'PDF';
+    preview.append(element('span', '', badge));
+    preview.addEventListener('click', () => openPdfDetails(item));
+    card.append(preview);
+    visiblePreviews.observe(preview);
   }
   meta.append(element('span', 'tag', subject.label), element('span', '', grades[item.grade]));
   if (item.unit && !item.images) meta.append(element('span', '', '· ' + item.unit + '단원 · 파트 ' + item.part));
@@ -128,9 +216,8 @@ function card(item) {
     preview.addEventListener('click', () => openDetails(item));
     actions.append(preview);
   } else {
-    const preview = action('PDF 열기', 'file', 'secondary', item.pdf);
-    preview.target = '_blank';
-    preview.rel = 'noopener noreferrer';
+    const preview = action('미리보기', 'file', 'secondary');
+    preview.addEventListener('click', () => openPdfDetails(item));
     actions.append(preview);
   }
   actions.append(download(item));
@@ -140,6 +227,7 @@ function card(item) {
 }
 
 function render() {
+  visiblePreviews.disconnect();
   const base = community ? state.shared : officialFiles;
   const normalize = value => value.normalize('NFC').toLowerCase();
   const terms = normalize(state.query).trim().split(/\s+/).filter(Boolean);

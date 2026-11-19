@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#f7f7ef">
 <meta name="description" content="특수교육 수업을 위한 국어·수학·일상생활 PDF 학습지를 학년군별로 내려받으세요.">
 <title>꾸준히 학습지 | 특수교육 자료실</title>
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=8">
 <script src="catalog.js?v=3" defer></script>
-<script src="app.js?v=7" defer></script>
+<script src="app.js?v=8" defer></script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8544439780701521" crossorigin="anonymous"></script>
 </head>
 <body data-view="library">
@@ -18,21 +18,26 @@
     <a class="brand" href="./" aria-label="꾸준히 학습지 자료실">
       <span class="brand-icon" data-icon="book"></span><span>꾸준히 학습지<small>특수교육 수업자료실</small></span>
     </a>
-    <nav aria-label="주 메뉴">
-      <a href="./" aria-current="page">학습지 자료실</a>
-      <a href="community.html">교사 공유 게시판</a>
+    <nav class="resource-nav" aria-label="주 메뉴">
+      <a href="#library" aria-current="page">
+        <span class="resource-nav-icon" data-icon="book"></span>
+        <span><strong>학습지 자료실</strong><small>교과·학년군별 PDF</small></span>
+      </a>
+      <a href="community.html">
+        <span class="resource-nav-icon" data-icon="people"></span>
+        <span><strong>교사 공유 게시판</strong><small>선생님들의 수업자료 나눔</small></span>
+        <span class="resource-nav-arrow" data-icon="arrow"></span>
+      </a>
     </nav>
   </div>
 </header>
 <main class="wrap">
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero-copy">
-      <p class="eyebrow"><span></span> 선생님을 위한 특수교육 자료실</p>
       <h1 id="hero-title">꾸준히<br>학습지<span>.</span></h1>
       <p class="hero-description">초등부터 고등까지, 교과와 학년군에 맞는<br class="desktop"> 인쇄용 학습지를 찾아보세요.</p>
       <div class="hero-actions">
-        <a class="button button-cream" href="#library"><span data-icon="book"></span> 학습지 찾아보기</a>
-        <a class="button button-ghost" href="community.html">교사 자료 둘러보기 <span data-icon="arrow"></span></a>
+        <a class="button button-cream" href="#library">학습지 찾아보기 <span data-icon="arrow"></span></a>
       </div>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -53,8 +58,8 @@
           <h2 id="section-title">학습지 자료실</h2>
           <p id="section-description">수업에 바로 쓸 수 있는 PDF 학습지를 찾아보세요.</p>
         </div>
+        <form class="library-admin" action="admin.html" method="get"><button class="button share-top" type="submit">관리자 로그인</button></form>
       </div>
-      <form action="admin.html" method="get" style="display:flex;justify-content:flex-end;margin-top:8px"><button class="button share-top" type="submit">관리자 로그인</button></form>
       <div class="toolbar">
         <div id="subject-filter" role="group" aria-label="교과 선택"></div>
         <label class="search"><span data-icon="search"></span><span class="sr-only">자료 검색</span><input id="search" type="search" placeholder="학습지 검색" autocomplete="off"></label>

@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#f7f7ef">
 <meta name="description" content="특수교육 선생님들이 직접 만든 PDF 수업자료를 함께 나누는 게시판입니다.">
 <title>교사 공유 게시판 | 꾸준히 학습지</title>
-<link rel="stylesheet" href="style.css?v=2">
-<script src="app.js?v=4" defer></script>
+<link rel="stylesheet" href="style.css?v=8">
+<script src="app.js?v=8" defer></script>
 </head>
 <body data-view="community">
 <a class="skip" href="#library">자료 목록으로 건너뛰기</a>
@@ -16,18 +16,29 @@
     <a class="brand" href="./" aria-label="꾸준히 학습지 자료실">
       <span class="brand-icon" data-icon="book"></span><span>꾸준히 학습지<small>특수교육 수업자료실</small></span>
     </a>
-    <nav aria-label="주 메뉴">
-      <a href="./">학습지 자료실</a>
-      <a href="community.html" aria-current="page">교사 공유 게시판</a>
+    <nav class="resource-nav" aria-label="주 메뉴">
+      <a href="./#library">
+        <span class="resource-nav-icon" data-icon="book"></span>
+        <span><strong>학습지 자료실</strong><small>교과·학년군별 PDF</small></span>
+      </a>
+      <a href="#library" aria-current="page">
+        <span class="resource-nav-icon" data-icon="people"></span>
+        <span><strong>교사 공유 게시판</strong><small>선생님들의 수업자료 나눔</small></span>
+        <span class="resource-nav-arrow" data-icon="arrow"></span>
+      </a>
     </nav>
-    <button class="button share-top" data-share><span data-icon="plus"></span> 공유 자료 올리기</button>
   </div>
 </header>
 <main class="wrap">
   <section class="board-intro" aria-labelledby="board-heading">
-    <h1 id="board-heading">교사 공유 게시판</h1>
-    <p>수업에서 활용한 PDF를 다른 선생님들과 나눠 보세요.</p>
-    <button class="button button-green" data-share><span data-icon="plus"></span> 공유 자료 올리기</button>
+    <div class="board-intro-copy">
+      <span class="board-symbol" data-icon="people"></span>
+      <div>
+        <h1 id="board-heading">교사 공유 게시판</h1>
+        <p>선생님들이 나눈 수업자료를 찾거나, 직접 만든 PDF를 공유해 보세요.</p>
+      </div>
+    </div>
+    <button class="button button-green" type="button" data-share><span data-icon="plus"></span> 공유 자료 올리기</button>
   </section>
   <section class="workspace" id="library" tabindex="-1" aria-labelledby="board-title">
     <aside class="sidebar" aria-label="학년군 선택">

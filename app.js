@@ -199,7 +199,7 @@ function card(item) {
     image.width = 1080;
     image.height = 1350;
     image.loading = 'lazy';
-    preview.append(image, element('span', '', item.unit + '단원 · 파트 ' + item.part));
+    preview.append(image);
     preview.addEventListener('click', () => openDetails(item));
     card.append(preview);
   } else if (!item.issue) {
@@ -208,19 +208,18 @@ function card(item) {
     preview.dataset.pdf = item.pdf;
     preview.dataset.page = item.previewPages?.[0] || 1;
     preview.setAttribute('aria-label', item.title + ' 미리보기');
-    const badge = item.unit ? item.unit + '단원 · 파트 ' + item.part : 'PDF';
-    preview.append(element('span', '', badge));
+    preview.append(element('span', 'preview-placeholder', 'PDF'));
     preview.addEventListener('click', () => openPdfDetails(item));
     card.append(preview);
     visiblePreviews.observe(preview);
   }
   meta.append(element('span', 'tag', subject.label), element('span', '', grades[item.grade]));
-  if (item.unit && !item.images) meta.append(element('span', '', '· ' + item.unit + '단원 · 파트 ' + item.part));
+  if (item.unit) meta.append(element('span', '', '· ' + item.unit + '단원 · 파트 ' + item.part));
   if (item.pages) meta.append(element('span', '', '· PDF ' + item.pages + '쪽'));
   body.append(meta, element('h3', '', item.title));
   if (item.description) body.append(element('p', '', item.description));
   if (item.issue) {
-    body.append(element('p', '', '공유한 선생님 · ' + item.author));
+    body.append(element('p', 'post-author', '공유한 선생님 · ' + item.author));
     actions.append(action('게시글', 'external', 'secondary', item.issue));
   } else if (item.images) {
     const preview = action('미리보기', 'file', 'secondary');
@@ -403,15 +402,6 @@ async function loadOfficial() {
     state.error = true;
   } finally {
     state.loading = false;
-  }
-  const previews = officialFiles.filter(item => item.images);
-  const heroBack = previews.find(item => item.id === 'korean-p2') || previews[0];
-  const heroFront = previews.find(item => item.id === 'math-p1') || previews.find(item => item !== heroBack);
-  for (const [id, item] of [['hero-back', heroBack], ['hero-front', heroFront]]) {
-    if (!item) continue;
-    const image = el(id);
-    image.src = item.images[0];
-    image.hidden = false;
   }
   render();
 }

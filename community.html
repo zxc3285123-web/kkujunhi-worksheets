@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#223241">
 <meta name="description" content="특수교육 선생님들이 직접 만든 PDF 수업자료를 함께 나누는 게시판입니다.">
 <title>교사 공유 게시판 | 꾸준히 학습지</title>
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 <script src="app.js?v=9" defer></script>
 </head>
 <body data-view="community">
@@ -22,15 +22,17 @@
     </nav>
   </div>
 </header>
-<main class="wrap">
-  <div class="page-heading">
-    <div>
-      <h1 id="board-title">교사 공유 게시판</h1>
-      <p>선생님들이 직접 만든 수업자료를 나누는 곳입니다.</p>
+<main>
+  <div class="page-banner">
+    <div class="wrap page-heading">
+      <div>
+        <h1 id="board-title">교사 공유 게시판</h1>
+        <p>선생님들이 직접 만든 수업자료를 나누는 곳입니다.</p>
+      </div>
+      <button class="button button-green" type="button" data-share><span data-icon="plus"></span> 공유 자료 올리기</button>
     </div>
-    <button class="button button-green" type="button" data-share><span data-icon="plus"></span> 공유 자료 올리기</button>
   </div>
-  <section class="workspace" id="library" tabindex="-1" aria-labelledby="board-title">
+  <section class="wrap workspace" id="library" tabindex="-1" aria-labelledby="board-title">
     <aside class="sidebar" aria-label="학년군 선택">
       <h2>학년군</h2>
       <div id="grade-filter"></div>

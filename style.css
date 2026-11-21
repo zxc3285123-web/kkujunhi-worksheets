@@ -23,7 +23,7 @@ svg { width: 18px; height: 18px; vertical-align: middle; flex-shrink: 0; }
 .skip:focus { position: absolute; z-index: 2; top: 8px; left: 8px; padding: 10px; background: #fff; }
 
 .header { color: var(--ink); background: #fff; border-bottom: 1px solid var(--line); }
-.header-inner { display: flex; align-items: stretch; justify-content: space-between; min-height: 72px; gap: 24px; }
+.header-inner { display: flex; align-items: stretch; justify-content: flex-start; min-height: 72px; gap: clamp(24px, 4vw, 56px); }
 .brand { display: flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 780; letter-spacing: -.04em; white-space: nowrap; }
 .brand-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9px; color: #fff; background: var(--brand); }
 .brand-icon svg { width: 20px; height: 20px; }

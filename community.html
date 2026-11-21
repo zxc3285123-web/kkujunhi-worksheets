@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#223241">
+<meta name="theme-color" content="#f8faf9">
 <meta name="description" content="특수교육 선생님들이 직접 만든 PDF 수업자료를 함께 나누는 게시판입니다.">
 <title>교사 공유 게시판 | 꾸준히 학습지</title>
-<link rel="stylesheet" href="style.css?v=10">
-<script src="app.js?v=9" defer></script>
+<link rel="stylesheet" href="style.css?v=11">
+<script src="app.js?v=11" defer></script>
 </head>
 <body data-view="community">
 <a class="skip" href="#library">자료 목록으로 건너뛰기</a>
@@ -33,6 +33,7 @@
     </div>
   </div>
   <section class="wrap workspace" id="library" tabindex="-1" aria-labelledby="board-title">
+    <label class="search"><span data-icon="search"></span><span class="sr-only">공유 자료 검색</span><input id="search" type="search" placeholder="제목, 활동 내용으로 검색" autocomplete="off"></label>
     <aside class="sidebar" aria-label="학년군 선택">
       <h2>학년군</h2>
       <div id="grade-filter"></div>
@@ -40,7 +41,6 @@
     <div class="main-panel">
       <div class="toolbar">
         <div id="subject-filter" role="group" aria-label="교과 선택"></div>
-        <label class="search"><span data-icon="search"></span><span class="sr-only">자료 검색</span><input id="search" type="search" placeholder="공유 자료 검색" autocomplete="off"></label>
       </div>
       <div class="results">
         <p id="result-count" role="status" aria-live="polite"></p>

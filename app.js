@@ -28,7 +28,24 @@ const icon = name => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 const el = id => document.getElementById(id);
 const community = document.body.dataset.view === 'community';
 const officialOrigin = 'https://kkujunhi-materials-manager.zxc3285.chatgpt.site';
-const state = { grade: '', subject: '', query: '', shared: [], loading: true, error: false };
+const params = new URLSearchParams(location.search);
+const grade = params.get('grade');
+const subject = params.get('subject');
+const state = {
+  grade: Object.hasOwn(grades, grade) ? grade : '',
+  subject: Object.hasOwn(subjects, subject) ? subject : '',
+  query: params.get('q') || '',
+  shared: [], loading: true, error: false,
+};
+
+function updateFilterUrl() {
+  const url = new URL(location.href);
+  for (const [key, value] of [['grade', state.grade], ['subject', state.subject], ['q', state.query.trim()]]) {
+    if (value) url.searchParams.set(key, value);
+    else url.searchParams.delete(key);
+  }
+  if (url.href !== location.href) history.replaceState(history.state, '', url);
+}
 let officialFiles = [];
 
 function readOfficialFiles(entries, metadata) {
@@ -159,7 +176,7 @@ async function openPdfDetails(item) {
     images.replaceChildren(...pages);
   } catch {
     if (request === detailRequest && el('details').open) {
-      status.textContent = '이미지 미리보기를 불러오지 못했어요. 아래 PDF 열기를 이용해 주세요.';
+      status.textContent = '이미지 미리보기를 불러오지 못했어요. 위의 PDF 열기를 이용해 주세요.';
     }
   }
 }
@@ -252,7 +269,11 @@ function render() {
     button.lastElementChild.textContent = grade ? base.filter(item => item.grade === grade).length : base.length;
   });
   document.querySelectorAll('[data-subject]').forEach(button => button.setAttribute('aria-pressed', button.dataset.subject === state.subject));
-  el('result-count').textContent = state.loading ? '자료를 불러오는 중…' : '자료 ' + filtered.length + '개';
+  const selection = [grades[state.grade], subjects[state.subject]?.label].filter(Boolean);
+  const resultLabel = selection.length ? selection.join(' · ') + ' · ' : '';
+  el('result-count').textContent = state.loading ? '자료를 불러오는 중…'
+    : state.error ? '자료를 불러오지 못했습니다.' : resultLabel + '자료 ' + filtered.length + '개';
+  el('cards').setAttribute('aria-busy', String(state.loading));
   el('reset').hidden = !state.grade && !state.subject && !state.query;
   const note = el('network-note');
   if (note) note.hidden = !state.error;
@@ -276,6 +297,17 @@ function render() {
     element('h3', '', firstPost ? '아직 공개된 교사 자료가 없어요.' : '조건에 맞는 자료가 없어요.'),
     element('p', '', firstPost ? '공유 자료 올리기에서 첫 자료를 공유해 보세요.' : '다른 학년군이나 교과를 선택하거나 검색어를 바꿔 보세요.'),
   );
+  if (firstPost) {
+    const share = element('button', 'button button-green', '공유 자료 올리기');
+    share.type = 'button';
+    share.addEventListener('click', () => document.querySelector('[data-share]').click());
+    empty.append(share);
+  } else if (state.grade || state.subject || state.query) {
+    const reset = element('button', 'button secondary', '모든 자료 보기');
+    reset.type = 'button';
+    reset.addEventListener('click', clearFilters);
+    empty.append(reset);
+  }
   el('cards').replaceChildren(empty);
 }
 
@@ -287,14 +319,18 @@ function filterButton(label, value, type) {
   if (type === 'grade') button.append(element('span'));
   button.addEventListener('click', () => {
     state[type] = value;
+    updateFilterUrl();
     render();
   });
   return button;
 }
 
-function resetFilters() {
+function clearFilters() {
   state.grade = state.subject = state.query = '';
   el('search').value = '';
+  updateFilterUrl();
+  render();
+  el('search').focus();
 }
 function parseIssue(issue) {
   if (issue.pull_request || typeof issue.body !== 'string') return null;
@@ -346,8 +382,13 @@ for (const [school, keys] of [['초등', ['e12', 'e34', 'e56']], ['중등', ['m1
 }
 el('subject-filter').append(filterButton('전체 교과', '', 'subject'));
 for (const [key, value] of Object.entries(subjects)) el('subject-filter').append(filterButton(value.label, key, 'subject'));
-el('search').addEventListener('input', event => { state.query = event.target.value; render(); });
-el('reset').addEventListener('click', () => { resetFilters(); render(); el('search').focus(); });
+el('search').value = state.query;
+el('search').addEventListener('input', event => {
+  state.query = event.target.value;
+  updateFilterUrl();
+  render();
+});
+el('reset').addEventListener('click', clearFilters);
 
 if (community) {
   const form = el('share-form');

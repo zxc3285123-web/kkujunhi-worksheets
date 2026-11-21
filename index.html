@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#223241">
+<meta name="theme-color" content="#f8faf9">
 <meta name="description" content="특수교육 수업을 위한 국어·수학·일상생활 PDF 학습지를 학년군별로 내려받으세요.">
 <title>꾸준히 학습지 | 특수교육 자료실</title>
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 <script src="catalog.js?v=3" defer></script>
-<script src="app.js?v=9" defer></script>
+<script src="app.js?v=11" defer></script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8544439780701521" crossorigin="anonymous"></script>
 </head>
 <body data-view="library">
@@ -29,12 +29,13 @@
     <div class="wrap page-heading">
       <div>
         <h1 id="section-title">학습지 자료실</h1>
-        <p>초등부터 고등까지, 교과와 학년군에 맞는 특수교육 학습지를 찾아보세요.</p>
+        <p>국어·수학·일상생활 수업에 바로 쓰는 특수교육 PDF 학습지</p>
       </div>
       <form class="library-admin" action="admin.html" method="get"><button class="button secondary" type="submit">관리자 로그인</button></form>
     </div>
   </div>
   <section class="wrap workspace" id="library" tabindex="-1" aria-labelledby="section-title">
+    <label class="search"><span data-icon="search"></span><span class="sr-only">학습지 검색</span><input id="search" type="search" placeholder="제목, 활동 내용으로 검색" autocomplete="off"></label>
     <aside class="sidebar" aria-label="학년군 선택">
       <h2>학년군</h2>
       <div id="grade-filter"></div>
@@ -42,7 +43,6 @@
     <div class="main-panel">
       <div class="toolbar">
         <div id="subject-filter" role="group" aria-label="교과 선택"></div>
-        <label class="search"><span data-icon="search"></span><span class="sr-only">자료 검색</span><input id="search" type="search" placeholder="학습지 검색" autocomplete="off"></label>
       </div>
       <div class="results">
         <p id="result-count" role="status" aria-live="polite"></p>
@@ -61,7 +61,8 @@
 </footer>
 <dialog id="details" aria-labelledby="detail-title">
   <div class="dialog-top"><h2 id="detail-title"></h2><form method="dialog"><button class="icon-button" aria-label="미리보기 닫기" data-icon="close"></button></form></div>
-  <p id="detail-meta"></p><div id="detail-images"></div><div id="detail-actions" class="dialog-actions"></div>
+  <div class="preview-toolbar"><p id="detail-meta"></p><div id="detail-actions" class="dialog-actions"></div></div>
+  <div id="detail-images"></div>
 </dialog>
 <script>
 if (location.hash === '#community') location.replace('community.html');
